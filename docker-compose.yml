@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  # Django service
+  c2s:
+    build:
+      context: .
+      dockerfile: c2s/django/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    # Add any additional configuration you may need for your Django service
+
+  # PostgreSQL service
+  postgres:
+    build:
+      context: .
+      dockerfile: c2s/postgres/Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Add any additional configuration you may need for your PostgreSQL service
+
+volumes:
+  postgres_data:
