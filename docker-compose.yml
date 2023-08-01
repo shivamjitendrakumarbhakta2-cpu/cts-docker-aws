@@ -21,8 +21,6 @@ services:
       dockerfile: c2s/postgres/Dockerfile
     env_file:
       - .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     # Add any additional configuration you may need for your PostgreSQL service
 
 volumes:
