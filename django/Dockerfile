@@ -1,11 +1,9 @@
 FROM python:3
 ENV PYTHONUNBUFFERED 1
-RUN mkdir /c2s
 WORKDIR /c2s
-RUN apt-get update \
-    && apt-get install -y netcat
-COPY requirements.txt /c2s/
+COPY django/requirements.txt ./
 RUN pip install -r requirements.txt
-COPY . /c2s/
+COPY . ./
+COPY django/entrypoint.sh /c2s/django/entrypoint.sh
+RUN chmod +x /c2s/django/entrypoint.sh
 EXPOSE 8000
-ENTRYPOINT ["/c2s/django/entrypoint.sh"]

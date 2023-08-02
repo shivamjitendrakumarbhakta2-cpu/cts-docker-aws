@@ -5,7 +5,10 @@ services:
   c2s:
     build:
       context: .
-      dockerfile: c2s/django/Dockerfile
+      dockerfile: django/Dockerfile
+    entrypoint :  
+      - /bin/sh
+      - /c2s/django/entrypoint.sh
     ports:
       - "8000:8000"
     env_file:
@@ -18,10 +21,8 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: c2s/postgres/Dockerfile
+      dockerfile: postgres/Dockerfile
     env_file:
       - .env
     # Add any additional configuration you may need for your PostgreSQL service
 
-volumes:
-  postgres_data:
