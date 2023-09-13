@@ -25,3 +25,4 @@ class pickUpPointSerializers(serializers.ModelSerializer):
     class Meta:
         model = pickUpPoints
         fields ="__all__"
+

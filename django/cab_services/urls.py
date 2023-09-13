@@ -12,5 +12,6 @@ urlpatterns = [
     path("pickUpPoint",views.pick_up_point.as_view()),
     path("pickUpPoint/<int:pk>",views.pick_up_points.as_view()),
     path("cab",views.Cab.as_view()),
-    path("cab/<int:pk>",views.Cabs.as_view())
+    path("cab/<int:pk>",views.Cabs.as_view()),
+    path("admin/<str:name>/<str:pk>",views.custom_admin.as_view())
 ]

@@ -192,3 +192,23 @@ class Cabs(APIView):
                 return Response(serailizers.errors)
         except Exception as e:
             print(e)
+
+
+class custom_admin(APIView):
+    def get(self, request, name, pk, fromat=None):
+        if name == 'cab':
+            cab_data = cab.objects.filter(adminCode=pk)
+            serailizers = cabSerializers(cab_data,many=True)
+            return Response(serailizers.data) 
+        elif name == 'route':
+            route_data = Routes.objects.filter(adminCode=pk)
+            serailizers = routeSerailizers(route_data,many=True)
+            return Response(serailizers.data)
+        elif name == 'batch':
+            batch_data = Batch.objects.filter(adminCode=pk)
+            serailizers = batchSerializers(batch_data,many=True)
+            return Response(serailizers.data)
+        elif name == 'pickuppoint':
+            pickuppoint_data = pickUpPoints.objects.filter(adminCode=pk)
+            serailizers = pickUpPointSerializers(pickuppoint_data,many=True)
+            return Response(serailizers.data)

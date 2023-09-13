@@ -38,7 +38,7 @@ class pickUpPoints(models.Model):
 
 
 class cab(models.Model):
-    regNumber = models.CharField(max_length=100, null=True)
+    regNumber = models.CharField(max_length=100, null=True,unique=True)
     capacity = models.IntegerField()
     adminCode = models.ForeignKey("user_servcies.subAdmin", on_delete=models.SET_NULL, null=True)  # type: ignore
     km = models.IntegerField()

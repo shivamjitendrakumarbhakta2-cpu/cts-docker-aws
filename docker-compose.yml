@@ -25,4 +25,9 @@ services:
     env_file:
       - .env
     # Add any additional configuration you may need for your PostgreSQL service
-
+    volumes:
+      - ./postgres:/postgres
+      - ./postgres/backup.sql:/docker-entrypoint-initdb.d/postgres/backup.sql
+      - ./postgres/db_backup.sh:/postgres/db_backup.sh
+    command: /bin/bash -c "bash /postgres/db_backup.sh; postgres -D /var/lib/postgresql/data"
+    restart: always

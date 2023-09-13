@@ -17,6 +17,9 @@ urlpatterns = [
     path("admin/<int:pk>",views.Admins.as_view()),
     path("admin/<str:name>/<str:pk>",views.custom_admin.as_view())
     
-
     
 ]
+# baseUrl/commuter/userId
+# baseUrl/userId {first_name,contact,email}
+
+# baseUrl/user/admin/commuter/admincode
