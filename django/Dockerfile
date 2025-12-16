@@ -1,9 +1,11 @@
 FROM python:3
 ENV PYTHONUNBUFFERED 1
-WORKDIR /c2s
+WORKDIR /app
 COPY django/requirements.txt ./
 RUN pip install -r requirements.txt
 COPY . ./
-COPY django/entrypoint.sh /c2s/django/entrypoint.sh
-RUN chmod +x /c2s/django/entrypoint.sh
-EXPOSE 8000
+WORKDIR /app/django
+RUN sed -i 's/\r$//g' /app/django/entrypoint.sh
+RUN chmod +x /app/django/entrypoint.sh
+#CMD ["sh", "-c", "/app/django/entrypoint.sh"]
+ENTRYPOINT ["/app/django/entrypoint.sh"]

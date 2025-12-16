@@ -11,31 +11,33 @@ from django.apps import apps
 
 # Create your models here.
 class Routes(models.Model):
-    routeName = models.CharField(max_length=100)
+    routeName = models.CharField(max_length=100,unique=False)
     adminCode = models.ForeignKey(
         "user_servcies.subAdmin", on_delete=models.SET_NULL, null=True
     )
+    class Meta:
+        unique_together = [['routeName', 'adminCode']] 
 
 
 class Batch(models.Model):
     batchName = models.CharField(max_length=100)
     batchTime = models.TimeField(auto_now=False, auto_now_add=False, null=True)
+    end_time = models.TimeField(auto_now=False, auto_now_add=False, null=True)
     endDate = models.DateField(null=True)  # type: ignore
     startDate = models.DateField(null=True)  # type: ignore
     adminCode = models.ForeignKey(
         "user_servcies.subAdmin", on_delete=models.SET_NULL, null=True
     )
-
-
+    
 class pickUpPoints(models.Model):
-    pickUpPointName = models.CharField(max_length=100)
+    pickUpPointName = models.CharField(max_length=100,)
     lat = models.FloatField()
     longitude = models.FloatField()
-    routeId = models.ForeignKey(Routes, on_delete=models.SET_NULL, null=True)
+    routeId = models.ForeignKey(Routes, on_delete=models.CASCADE, null=False, default=1)
     adminCode = models.ForeignKey(
         "user_servcies.subAdmin", on_delete=models.SET_NULL, null=True
     )
-
+    inLine = models.IntegerField(null=True)
 
 class cab(models.Model):
     regNumber = models.CharField(max_length=100, null=True,unique=True)
@@ -45,3 +47,4 @@ class cab(models.Model):
     regDate = models.DateTimeField(auto_now_add=True)
     routeId = models.ForeignKey(Routes, on_delete=models.SET_NULL, null=True)
     thumbnail = models.BinaryField(null=True)
+    

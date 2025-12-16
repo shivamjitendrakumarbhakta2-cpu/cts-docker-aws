@@ -15,7 +15,8 @@ urlpatterns = [
     path("driver/<int:pk>",views.drivers.as_view()),
     path("admin",views.Admin.as_view()),
     path("admin/<int:pk>",views.Admins.as_view()),
-    path("admin/<str:name>/<str:pk>",views.custom_admin.as_view())
+    path("admin/<str:name>/<str:pk>",views.custom_admin.as_view()),
+    path("driver/batch/<str:batch_id>",views.DriverBatch.as_view())
     
     
 ]
@@ -23,3 +24,4 @@ urlpatterns = [
 # baseUrl/userId {first_name,contact,email}
 
 # baseUrl/user/admin/commuter/admincode
+# user/commuter/driver

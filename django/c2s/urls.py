@@ -21,5 +21,6 @@ urlpatterns = [
    
     path('void/', admin.site.urls),
     path("user/",include("user_servcies.urls")), # type: ignore
-    path("cab/",include("cab_services.urls"))
+    path("cab/",include("cab_services.urls")),
+    path("d2d/",include("d2d_log.urls"))
 ]

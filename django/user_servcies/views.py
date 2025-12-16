@@ -16,7 +16,11 @@ from .Serializers import (
     customCommuterSerializer,
     customCommuterSerializer,
     customDriverSerializer,
+    DriverUserSerailizers
+
 )
+import uuid
+from django.db import transaction
 
 User = get_user_model()
 # Create your views here.
@@ -30,8 +34,9 @@ class common_user(APIView):
             return Response(serializer.data)
         except Exception as e:
             print(e)
-            return Response("ERROR")
-
+            return Response(str(serializer.errors))
+    
+    @transaction.atomic
     def post(self, request, foramt=None):
         if (len(request.data['user']['username'].split(" "))==2):
           request.data["user"]["first_name"],request.data["user"]["last_name"] = request.data["user"]["username"].split(" ")[0],request.data["user"]["username"].split(" ")[1]
@@ -41,38 +46,60 @@ class common_user(APIView):
         request.data["user"]["password"] = make_password(
             request.data["user"]["password"]
         )
-        request.data["user"]["first"]
+        # request.data["user"]["first"]
         user_serailizer = userSerializer(data=request.data["user"])
-        print("user", user_serailizer)
+        
         if user_serailizer.is_valid():
-            print("VALID")
             user = user_serailizer.save()
-
+            # sid = transaction.savepoint()
             request.data["user_data"]["userId"] = user.id
-            print(user.userType)
+        # user = user_serailizer.save()
+        
+            
+
+            
             if user.userType == "COMMUTER":
+                # print(request.data["user_data"])
                 commuter_serilizers = commuterSerializer(data=request.data["user_data"])
 
                 if commuter_serilizers.is_valid():
+                    # transaction.savepoint_commit(sid)
+                    # user = user_serailizer.save()
+            # sid = transaction.savepoint()
+                    # request.data["user_data"]["userId"] = user.id
                     commuter_serilizers.save()
-                    return Response("COMMUTER CREATED")
+                    return Response("commuter created")
                 else:
-                    return Response(commuter_serilizers.errors)
+                    # transaction.savepoint_rollback(sid)
+                    user.delete()
+                    return Response(str(commuter_serilizers.errors))
 
             elif user.userType == "ADMIN":
                 admin_serailizer = adminSerializer(data=request.data["user_data"])
                 if admin_serailizer.is_valid():
+                    # user = user_serailizer.save()
+                    # transaction.savepoint_commit(sid)
+                    user.save()
                     admin_serailizer.save()
-                    return Response("ADMIN CREATED")
+                    return Response("admin created")
+                else:
+                    user.delete()
+                    # transaction.savepoint_rollback(sid)
+                    return Response(str(admin_serailizer.errors))
 
             elif user.userType == "DRIVER":
                 try:
-                    print("DRIVER")
+                    # print("DRIVER")
                     driver_serailizer = driverSerializer(data=request.data["user_data"])
                     if driver_serailizer.is_valid():
+                        # transaction.savepoint_commit(sid)
+                        # user = user_serailizer.save()
+                        # user.save()
                         driver_serailizer.save()
-                        return Response("DRIVER CREATED")
+                        return Response("driver created")
                     else:
+                        user.delete()
+                        # transaction.savepoint_rollback(sid)
                         return Response(str(driver_serailizer.errors))
                 except Exception as e:
                     print(e)
@@ -92,7 +119,9 @@ class users(APIView):
             serializer = userSerializer(user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
-                return Response("USER UPDATED")
+                return Response("user updated")
+            else:
+                return Response(str(serializer.errors))
         except Exception as e:
             print(e)
 
@@ -113,18 +142,19 @@ class Commuters(APIView):
     def get(self, request, pk, format=None):
         try:
             commuter_data = commuter.objects.get(userId=pk)
-            serializers = commuterSerializer(commuter_data)
+            serializers = customCommuterSerializer(commuter_data)
             return Response(serializers.data)
 
         except Exception as e:
-            return Response("ERROR")
+            return Response(str(e))
 
     def patch(self, request, pk, format=None):
+        # print(f"COMMUTER PACTH CALLED:,{pk}")
         commuter_data = commuter.objects.get(userId=pk)
         serializer = commuterSerializer(commuter_data, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return serializer.data
+            return Response("commuter updated")
         else:
             return Response(serializer.error_messages)
 
@@ -156,7 +186,7 @@ class Admins(APIView):
         serializer = adminSerializer(admin_data, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return serializer.data
+            return (serializer.data)
         else:
             return Response(serializer.error_messages)
 
@@ -169,9 +199,10 @@ class Admins(APIView):
 class custom_admin(APIView):
     def get(self, request, name, pk, fromat=None):
         if name == "commuter":
-            print("pk", pk)
+            adminData = subAdmin.objects.get(pk=uuid.UUID(pk).hex)
+            print(adminData)
             commuter_data = commuter.objects.select_related("userId").filter(
-                adminCode=pk
+                adminCode=adminData
             )
 
             commuterSerailizer = customCommuterSerializer(commuter_data, many=True)
@@ -187,15 +218,16 @@ class custom_admin(APIView):
 class driver(APIView):
     def get(self, request, foramt=None):
         driver_data = Driver.objects.all()
-        serializers = commuterSerializer(driver_data, many=True)
+        serializers = customDriverSerializer(driver_data, many=True)
         return Response(serializers.data)
+
 
 
 class drivers(APIView):
     def get(self, request, pk, format=None):
         try:
             driver_data = Driver.objects.get(userId=pk)
-            serializers = driverSerializer(driver_data)
+            serializers = customDriverSerializer(driver_data)
             return Response(serializers.data)
 
         except Exception as e:
@@ -206,7 +238,7 @@ class drivers(APIView):
         serializer = driverSerializer(driver_data, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return serializer.data
+            return Response("driver updated")
         else:
             return Response(serializer.error_messages)
 
@@ -214,6 +246,22 @@ class drivers(APIView):
         driver_data = Driver.objects.get(userId=pk)
         driver_data.delete()
         return Response("ADMIN DELETED, PLEASE DETLETE THE USER AS WELL")
+
+
+class DriverBatch(APIView):
+    def get(self,request,batch_id,foramt=None):
+        driver_data  = Driver.objects.get(batchId=batch_id)
+        driver_contact_detail = DriverUserSerailizers(driver_data)
+    
+        try:
+            
+                # driver_contact_detail = DriverUserSerailizers(data=driver_data.id)
+            return Response(driver_contact_detail.data)
+            
+        except Exception as e:
+            return Response(str(e))
+
+        
 
 
 @api_view(["POST"])
@@ -257,3 +305,5 @@ def logout_user(request):
     except Exception as e:
         print(e)
         return Response("ERROR")
+
+

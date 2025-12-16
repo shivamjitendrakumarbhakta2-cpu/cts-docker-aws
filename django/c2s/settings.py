@@ -23,24 +23,24 @@ load_dotenv()
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
-#SESSION_COOKIE_SECURE = True
-#DATE_INPUT_FORMATS = ['%d-%m-%Y']
+# SESSION_COOKIE_SECURE = True
+# DATE_INPUT_FORMATS = ['%d-%m-%Y']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 
-#SECURE_HSTS_SECONDS = os.environ.get('SECURE_HSTS_SECONDS')
-#SECURE_HSTS_PRELOAD = True
-#SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#SESSION_COOKIE_AGE = os.environ.get('SESSION_COOKIE_AGE')
-#CSRF_COOKIE_SECURE = True
+# SECURE_HSTS_SECONDS = os.environ.get('SECURE_HSTS_SECONDS')
+# SECURE_HSTS_PRELOAD = True
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SESSION_COOKIE_AGE = os.environ.get('SESSION_COOKIE_AGE')
+# CSRF_COOKIE_SECURE = True
 
 ALLOWED_HOSTS = ["*"]
 
-#Settings For Auth User
+# Settings For Auth User
 AUTH_USER_MODEL = "user_servcies.User"
 
 # Application definition
@@ -55,13 +55,13 @@ INSTALLED_APPS = [
     "rest_framework",
     "cab_services",
     "user_servcies",
-    
+    "d2d_log",
+    "channels",
 ]
 
 
-#SESSION_COOKIE_SECURE = True
-#SECURE_SSL_REDIRECT = True
-
+# SESSION_COOKIE_SECURE = True
+# SECURE_SSL_REDIRECT = True
 
 
 MIDDLEWARE = [
@@ -92,8 +92,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "c2s.wsgi.application"
-
+# WSGI_APPLICATION = "c2s.wsgi.application"
+ASGI_APPLICATION = "c2s.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
@@ -112,7 +112,15 @@ DATABASES = {
         "ATOMIC_REQUESTS": True,  # Optional: enable automatic transaction management
     }
 }
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://redis',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -131,6 +139,26 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        ### Method 1: Via redis lab
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [
+        #       'redis://h:<password>;@<redis Endpoint>:<port>'
+        #     ],
+        # },
+        ### Method 2: Via local Redis
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #      "hosts": [('127.0.0.1', 6379)],
+        # },
+        ### Method 3: Via In-memory channel layer
+        ## Using this method.
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    },
+}
 
 
 # Internationalization
@@ -153,4 +181,3 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-

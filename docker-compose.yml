@@ -1,33 +1,75 @@
 version: "3.9"
 
 services:
-  # Django service
-  c2s:
-    build:
-      context: .
-      dockerfile: django/Dockerfile
-    entrypoint :  
-      - /bin/sh
-      - /c2s/django/entrypoint.sh
+  redis:
+    image: redis:latest
+    container_name: C2S-redis
+    command: ["redis-server"]
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-    # Add any additional configuration you may need for your Django service
+      - "6379:6379"
+    volumes:
+      - ./redis-data:/data
+    networks:
+      - backend    
+
 
   # PostgreSQL service
   postgres:
+    container_name: C2S-PostgresDB
     build:
-      context: .
-      dockerfile: postgres/Dockerfile
+      context: ./postgres/
+      dockerfile: Dockerfile
     env_file:
       - .env
     # Add any additional configuration you may need for your PostgreSQL service
     volumes:
-      - ./postgres:/postgres
-      - ./postgres/backup.sql:/docker-entrypoint-initdb.d/postgres/backup.sql
-      - ./postgres/db_backup.sh:/postgres/db_backup.sh
-    command: /bin/bash -c "bash /postgres/db_backup.sh; postgres -D /var/lib/postgresql/data"
+     - ./postgres/dumps20.sql:/docker-entrypoint-initdb.d/init/dumps20.sql
+     - postgres_data:/var/lib/postgresql/data/
+    #  - ./postgres:/postgres
+    #entrypoint: /postgres/db_backup.sh
     restart: always
+    networks:
+      - backend
+
+
+  # Django service
+  c2s:
+    container_name: C2S-Django
+    build:
+      context: .
+      dockerfile: django/Dockerfile
+    volumes:
+      - ./django:/app/django
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    networks:
+      - backend
+
+    # Add any additional configuration you may need for your Django service
+  
+  nginx:
+    build: ./nginx
+    container_name: C2S-Nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+      #- "443:443"
+    depends_on:
+      - postgres
+      - redis
+      - c2s    
+    restart: always
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+    driver: bridge

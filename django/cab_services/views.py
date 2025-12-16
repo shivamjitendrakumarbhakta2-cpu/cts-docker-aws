@@ -12,7 +12,14 @@ from .serializers import (
     batchSerializers,
     pickUpPointSerializers,
     cabSerializers,
+    customRouteSerializer,
+    customBatchSerializer,
+    customPOPSerializer,
+    customCabSerializer
+
 )
+# import uuid 
+# from user_servcies.models import subAdmin
 
 
 ## Class For Batch Get All and POST
@@ -109,7 +116,7 @@ class routes(APIView):
 class pick_up_point(APIView):
     def get(self, request, format=None):
         pick_up_point = pickUpPoints.objects.all()
-        print(pick_up_point)
+        # print(pick_up_point)
         try:
             serializer = pickUpPointSerializers(pick_up_point, many=True)
             return Response(serializer.data)
@@ -119,8 +126,20 @@ class pick_up_point(APIView):
     def post(self, request, format=None):
         serializer = pickUpPointSerializers(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response("PICK UP POINT CREATED")
+            try:
+                record = pickUpPoints.objects.filter(
+                    pickUpPointName=request.data["pickUpPointName"],
+                    routeId=request.data["routeId"],
+                ).exists()
+                if record:
+                    return Response("PICK UP ALREADY EXSITS")
+                else:
+                    serializer.save()
+                    return Response("PICK UP POINT CREATED")
+            except Exception as e:
+                print("EXCEPTION ", e)
+                return Response(f"ERROR {str(e)}" )
+
         else:
             return Response(serializer.errors)
 
@@ -198,17 +217,25 @@ class custom_admin(APIView):
     def get(self, request, name, pk, fromat=None):
         if name == 'cab':
             cab_data = cab.objects.filter(adminCode=pk)
-            serailizers = cabSerializers(cab_data,many=True)
+            serailizers = customCabSerializer(cab_data,many=True)
             return Response(serailizers.data) 
+        
+        
+        
         elif name == 'route':
             route_data = Routes.objects.filter(adminCode=pk)
-            serailizers = routeSerailizers(route_data,many=True)
+            serailizers = customRouteSerializer(route_data,many=True)
             return Response(serailizers.data)
+        
+        
+        
         elif name == 'batch':
             batch_data = Batch.objects.filter(adminCode=pk)
-            serailizers = batchSerializers(batch_data,many=True)
+            serailizers = customBatchSerializer(batch_data,many=True)
             return Response(serailizers.data)
+        
+        
         elif name == 'pickuppoint':
             pickuppoint_data = pickUpPoints.objects.filter(adminCode=pk)
-            serailizers = pickUpPointSerializers(pickuppoint_data,many=True)
+            serailizers = customPOPSerializer(pickuppoint_data,many=True)
             return Response(serailizers.data)
